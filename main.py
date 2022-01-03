@@ -161,7 +161,7 @@ def main(target, output_dir, max_steps, starting_image=None):
 
     
     SCALE = 20
-    resolution = 50
+    resolution = 10
     makedir(output_dir)
 
     def on_save(image, counter, last=None):
@@ -222,7 +222,7 @@ def mario():
 if __name__ == "__main__":
     IMAGE_WIDTH = 10
     IMAGE_HEIGHT = 10
-    MAX_STEPS = 30000
+    MAX_STEPS = 300000
     # target = [
     #     [ (0, 255, 125) for i in range(IMAGE_WIDTH) ] for j in range(IMAGE_HEIGHT)
     # ]
