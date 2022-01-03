@@ -2,7 +2,7 @@ import os
 import random
 from PIL import Image
 from math import ceil
-from utils import save_output, get_random_rgb, constrain, makedir, get_random_rgb_image
+from utils import save_output, get_random_rgb, constrain, makedir, get_random_rgb_image, to_image
 
 """ population should be a dictionary of {image: error} """
 
@@ -124,11 +124,10 @@ def mutate(parent, num_mutations):
 """
 
 
-def fit(target, on_save, max_steps, starting_image=None):
+def fit(starting_image, target, on_save, max_steps):
     counter = 0
     time = 0
 
-    starting_image = starting_image or get_random_rgb_image(len(target), len(target[0]))
     # population = init_population(starting_image, POPULATION_SIZE)
     population = [starting_image]
     most_fit = select(population, target)[0]
@@ -153,8 +152,7 @@ def fit(target, on_save, max_steps, starting_image=None):
             counter += 1
 
             print("error", error)
-            if counter % 10 == 0:
-                on_save(most_fit, time)
+            on_save(most_fit, time, counter)
         
 
     print("error", error)
@@ -167,26 +165,35 @@ def get_image_pixels(path):
     return [pixels[i * width:(i + 1) * width] for i in range(height)]
 
 
-def main(target, output_dir, max_steps):
+def main(target, output_dir, max_steps, starting_image=None):
 
+    images = []
     makedir(output_dir)
 
-    def on_save(image, time):
+    def on_save(image, time, counter=None):
         """ what to do with images when they are saved """
-        save_output(image, os.path.join(output_dir, f"{time}.jpeg"))
+        if counter is None or counter % 100 == 0:
+            save_output(image, os.path.join(output_dir, f"{time}.jpeg"))
+            images.append(to_image(image))
+
+
+    starting_image = starting_image or get_random_rgb_image(len(target), len(target[0]))
 
     print("width, height", len(target[0]), len(target))
-
     save_output(target, os.path.join(output_dir, "target.jpeg"))
+    save_output(starting_image, os.path.join(output_dir, "start.jpeg"))
 
-    fit(target, on_save, max_steps, starting_image=None)
+    fit(starting_image, target, on_save, max_steps)
+
+    images[0].save(os.path.join(output_dir, "final.gif"),
+               save_all=True, append_images=images[1:], optimize=False, duration=1000/len(images), loop=0)
 
 if __name__ == "__main__":
-    # IMAGE_WIDTH = 10
-    # IMAGE_HEIGHT = 10
+    IMAGE_WIDTH = 10
+    IMAGE_HEIGHT = 10
     MAX_STEPS = 20000
     target = [
-        [ (0, 255, 125) for i in range(100) ] for j in range(100)
+        [ (0, 255, 125) for i in range(IMAGE_WIDTH) ] for j in range(IMAGE_HEIGHT)
     ]
     output_dir = "test"
 
@@ -194,4 +201,4 @@ if __name__ == "__main__":
     # target = get_image_pixels(image_name)
     # output_dir = image_name.split(".")[0]
 
-    main(target, output_dir, MAX_STEPS)
+    main(target, output_dir, MAX_STEPS, starting_image=None)

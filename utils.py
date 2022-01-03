@@ -3,6 +3,11 @@ import random
 from PIL import Image
 
 def save_output(data, filename):
+    image = to_image(data)
+
+    image.save(filename)
+
+def to_image(data):
     height = len(data)
     width = len(data[0])
     # print("h,w", height, width)
@@ -13,7 +18,7 @@ def save_output(data, filename):
         for y in range(height):
             pixels[x, y] = data[y][x]
 
-    image.save(filename)
+    return image
 
 def get_random_rgb():
     return (
