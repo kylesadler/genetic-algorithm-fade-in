@@ -9,6 +9,7 @@ from utils import *
 POPULATION_SIZE = 10
 NUM_OFFSPRING = 10
 NUM_MUTATIONS = 10
+CHANGES_PER_MUTATION = 1
 
 def image_error(image, target):
     """ image and target are 2D lists of colors """
@@ -24,16 +25,7 @@ def pixel_error(pixel, target):
     # print(pixel[0], target[0], (pixel[0] - target[0])**2)
     return sum((pixel[i] - target[i])**2 for i in range(3))
 
-def init_population(parent, size):
-    """ returns a new population with given parent and size """
-    output = [parent]
-
-    for i in range(size):
-        output.append(mutate(parent, 10))
-
-    return output
-
-def reproduce(population, num_offspring, num_mutations):
+def reproduce(population, num_offspring, num_mutations, changes_per_mutation):
     new_offspring = []
 
     for i in range(num_offspring):
@@ -42,7 +34,7 @@ def reproduce(population, num_offspring, num_mutations):
 
     for i in range(num_mutations):
         parent = random.choices(population)[0]
-        new_offspring.append(mutate(parent, 1))
+        new_offspring.append(mutate(parent, changes_per_mutation))
     
     population.extend(new_offspring)
 
@@ -109,9 +101,8 @@ def run_genetic_algorithm(starting_image, target, on_save, max_steps=None):
     counter = 0
     time = 0
 
-    # population = init_population(starting_image, POPULATION_SIZE)
     population = [starting_image]
-    most_fit = select(population, target)[0]
+    most_fit = starting_image
     error = image_error(most_fit, target)
 
     print("error", error)
@@ -120,7 +111,7 @@ def run_genetic_algorithm(starting_image, target, on_save, max_steps=None):
     while (max_steps is None or time < max_steps) and error > 0:
         time += 1
 
-        population = reproduce(population, NUM_OFFSPRING, NUM_MUTATIONS)
+        population = reproduce(population, NUM_OFFSPRING, NUM_MUTATIONS, CHANGES_PER_MUTATION)
 
         population = select(population, target, POPULATION_SIZE)
 
@@ -207,19 +198,19 @@ def mario():
 
 
 def main():
-    target = generate_solid_image(
-        color=(0, 255, 125),
-        height=1,
-        width=1
-    )
-    output_dir = "test"
+    # target = generate_solid_image(
+    #     color=(0, 255, 125),
+    #     height=20,
+    #     width=20
+    # )
+    # output_dir = f"test_{get_current_time_ms()}"
 
     # image_name = 'puppy.png'
     # target = load_image_pixels(image_name)
     # output_dir = image_name.split(".")[0]
 
-    # target = mario()
-    # output_dir = "mario"
+    target = mario()
+    output_dir = "mario"
 
     video_path = generate_timelapse(
         target,
@@ -228,6 +219,8 @@ def main():
         max_steps=300000,
         starting_image=None
     )
+
+    print(f"Video created: {video_path}")
 
 if __name__ == "__main__":
     main()

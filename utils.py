@@ -1,6 +1,7 @@
 import os
 import random
 from PIL import Image
+from datetime import datetime, timezone
 
 def to_image(data):
     height = len(data)
@@ -68,3 +69,7 @@ def generate_solid_image(color, height, width):
     return [
         [ color for i in range(width) ] for j in range(height)
     ]
+
+def get_current_time_ms():
+    """ return current time in UTC in ms """
+    return round(datetime.now(timezone.utc).timestamp() * 1000)
