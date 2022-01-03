@@ -172,30 +172,63 @@ def main(target, output_dir, max_steps, starting_image=None):
 
     def on_save(image, time, counter=None):
         """ what to do with images when they are saved """
-        if counter is None or counter % 100 == 0:
-            save_output(image, os.path.join(output_dir, f"{time}.jpeg"))
+        if counter is None or counter % 50 == 0:
+            save_output(image, os.path.join(output_dir, f"{time}.png"))
             images.append(to_image(image))
 
 
     starting_image = starting_image or get_random_rgb_image(len(target), len(target[0]))
 
     print("width, height", len(target[0]), len(target))
-    save_output(target, os.path.join(output_dir, "target.jpeg"))
-    save_output(starting_image, os.path.join(output_dir, "start.jpeg"))
+    save_output(target, os.path.join(output_dir, "target.png"))
+    save_output(starting_image, os.path.join(output_dir, "start.png"))
 
     fit(starting_image, target, on_save, max_steps)
 
     images[0].save(os.path.join(output_dir, "final.gif"),
-               save_all=True, append_images=images[1:], optimize=False, duration=1000/len(images), loop=0)
+               save_all=True, append_images=images[1:], optimize=False, duration=2000/len(images), loop=0)
+
+
+def mario():
+    """ 16 tall x 13 wide """
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+    RED = (236, 71, 38)
+    BLUE = (3, 45, 210)
+    YELLOW = (255, 253, 84)
+    BROWN = (114, 63, 19)
+    SKIN = (247, 205, 160)
+
+    return [
+        [WHITE]*3 + [RED]*6 + [WHITE]*4,
+        [WHITE]*2 + [RED]*10 + [WHITE]*1,
+        [WHITE]*2 + [BROWN]*3 + [SKIN]*3 + [BLACK]*1 + [SKIN]*1 + [WHITE]*3,
+        [WHITE, BROWN, SKIN, BROWN] + [SKIN]*4 + [BLACK]*1 + [SKIN]*3 + [WHITE]*1,
+        [WHITE, BROWN, SKIN, BROWN, BROWN] + [SKIN]*4 + [BLACK]*1 + [SKIN]*3,
+        [WHITE, BROWN, BROWN] + [SKIN]*5 + [BLACK]*4 + [WHITE]*1,
+        [WHITE]*3 + [SKIN]*8 + [WHITE]*2,
+        [WHITE]*2 + [RED]*2 + [BLUE]*1 + [RED]*4 + [WHITE]*4,
+        [WHITE] + [RED]*3 + [BLUE]*1 + [RED]*2 + [BLUE]*1 + [RED]*3 + [WHITE]*2,
+        [RED]*4 + [BLUE]*4 + [RED]*4 + [WHITE],
+        [SKIN]*2 + [RED, BLUE, YELLOW, BLUE, BLUE, YELLOW, BLUE, RED] + [SKIN]*2 + [WHITE],
+        [SKIN]*3 + [BLUE]*6 + [SKIN]*3 + [WHITE],
+        [SKIN]*2 + [BLUE]*8 + [SKIN]*2 + [WHITE],
+        ([WHITE]*2 + [BLUE]*3)*2 + [WHITE]*3,
+        [WHITE]*1 + [BROWN]*3 + [WHITE]*4 + [BROWN]*3 + [WHITE]*2,
+        [BROWN]*4 + [WHITE]*4 + [BROWN]*4 + [WHITE]*1,
+    ]
 
 if __name__ == "__main__":
     IMAGE_WIDTH = 10
     IMAGE_HEIGHT = 10
     MAX_STEPS = 20000
-    target = [
-        [ (0, 255, 125) for i in range(IMAGE_WIDTH) ] for j in range(IMAGE_HEIGHT)
-    ]
-    output_dir = "test"
+    # target = [
+    #     [ (0, 255, 125) for i in range(IMAGE_WIDTH) ] for j in range(IMAGE_HEIGHT)
+    # ]
+    # output_dir = "test"
+
+    target = mario()
+    output_dir = "mario"
 
     # image_name = 'puppy.png'
     # target = get_image_pixels(image_name)
