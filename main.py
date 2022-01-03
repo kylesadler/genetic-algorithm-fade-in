@@ -2,18 +2,12 @@ import os
 import random
 from PIL import Image
 from math import ceil
-from utils import get_random_rgb, constrain, makedir, get_random_rgb_image, to_image, resize, add_white_boarder
+from utils import *
 
-""" population should be a dictionary of {image: error} """
-
+# per step
 POPULATION_SIZE = 10
-
-REPRODUCTION_FACTOR = 10
-MUTATION_FACTOR = 10
-
-def pixel_error(pixel, target):
-    # print(pixel[0], target[0], (pixel[0] - target[0])**2)
-    return sum((pixel[i] - target[i])**2 for i in range(3))
+NUM_OFFSPRING = 10
+NUM_MUTATIONS = 10
 
 def image_error(image, target):
     """ image and target are 2D lists of colors """
@@ -25,12 +19,9 @@ def image_error(image, target):
 
     return output
 
-
-
-# def save_gif():
-#     im.save('out.gif', save_all=True, append_images=[im1, im2, ...])
-
-
+def pixel_error(pixel, target):
+    # print(pixel[0], target[0], (pixel[0] - target[0])**2)
+    return sum((pixel[i] - target[i])**2 for i in range(3))
 
 def init_population(parent, size):
     """ returns a new population with given parent and size """
@@ -38,20 +29,6 @@ def init_population(parent, size):
 
     for i in range(size):
         output.append(mutate(parent, 10))
-
-    return output
-
-
-def cross(parents):
-    """ return the crossbreed of parent images """
-    output = []
-    for y in range(len(parents[0])):
-        row = []
-        for x in range(len(parents[0][0])):
-            # print(random.choices(parents))
-            parent_of_choice = parents[random.choices(range(len(parents)))[0]]
-            row.append(parent_of_choice[y][x])
-        output.append(row)
 
     return output
 
@@ -70,12 +47,18 @@ def reproduce(population, num_offspring, num_mutations):
 
     return population
 
-def select(population, target, pop_size=None):
-    """ return the top pop_size individuals in the population
-        in sorted order with most fit being first """
-    i = pop_size or ceil(len(population) / 2)
-    return sorted(population, key=lambda item: image_error(item, target))[:i]
+def cross(parents):
+    """ return the crossbreed of parent images """
+    output = []
+    for y in range(len(parents[0])):
+        row = []
+        for x in range(len(parents[0][0])):
+            # print(random.choices(parents))
+            parent_of_choice = parents[random.choices(range(len(parents)))[0]]
+            row.append(parent_of_choice[y][x])
+        output.append(row)
 
+    return output
 
 def mutate(parent, num_mutations):
     width = len(parent[0])
@@ -115,8 +98,13 @@ def mutate(parent, num_mutations):
     
     return parent
 
+def select(population, target, pop_size=None):
+    """ return the top pop_size individuals in the population
+        in sorted order with most fit being first """
+    i = pop_size or ceil(len(population) / 2)
+    return sorted(population, key=lambda item: image_error(item, target))[:i]
 
-def fit(starting_image, target, on_save, max_steps):
+def fit(starting_image, target, on_save, max_steps=None):
     counter = 0
     time = 0
 
@@ -128,10 +116,10 @@ def fit(starting_image, target, on_save, max_steps):
     print("error", error)
     on_save(most_fit, counter)
 
-    while time < max_steps and error > 0:
+    while (max_steps is None or time < max_steps) and error > 0:
         time += 1
 
-        population = reproduce(population, REPRODUCTION_FACTOR, MUTATION_FACTOR)
+        population = reproduce(population, NUM_OFFSPRING, NUM_MUTATIONS)
 
         population = select(population, target, POPULATION_SIZE)
 
@@ -149,47 +137,39 @@ def fit(starting_image, target, on_save, max_steps):
 
     print("error", error)
     on_save(most_fit, counter, last=True)
-    
-def get_image_pixels(path):
-    im = Image.open(path)
-    pixels = list(im.getdata())
-    width, height = im.size
-    return [pixels[i * width:(i + 1) * width] for i in range(height)]
 
 
-def main(target, output_dir, max_steps, starting_image=None):
+def run_genetic_algorithm(target, output_dir, video_resolution=10, scale=None, max_steps=None, starting_image=None):
+    height = len(target)
+    width = len(target[0])
 
-    
-    SCALE = 20
-    resolution = 10
+    scale = scale or ceil(300 / min(height, width))
+    starting_image = starting_image or get_random_rgb_image(height, width)
+
     makedir(output_dir)
+
+    def save_image(data, filename):
+        data = add_white_boarder(data, thickness=1)
+        data = to_image(data)
+        data = resize(data, scale)
+        data.save(filename)
 
     def on_save(image, counter, last=None):
         """ what to do with images when they are saved """
-        if counter % resolution == 0 or last:
+        if counter % video_resolution == 0 or last:
             if last:
                 counter += 1
-            save_image(image, SCALE, os.path.join(output_dir, f"{ceil(counter/resolution)}.png"))
+            save_image(image, os.path.join(output_dir, f"{ceil(counter/video_resolution)}.png"))
 
-
-    starting_image = starting_image or get_random_rgb_image(len(target), len(target[0]))
-
-    print("width, height", len(target[0]), len(target))
-    save_image(target, SCALE, os.path.join(output_dir, "target.png"))
-    save_image(starting_image, SCALE, os.path.join(output_dir, "start.png"))
+    print("width, height", width, height)
+    save_image(target, os.path.join(output_dir, "target.png"))
+    save_image(starting_image, os.path.join(output_dir, "start.png"))
 
     fit(starting_image, target, on_save, max_steps)
 
     # ffmpeg -i %d.png -vcodec mpeg4 output.mp4
 
-def save_image(data, scale, filename):
-    data = add_white_boarder(data)
-    data = to_image(data)
-    data = resize(data, scale)
-    data.save(filename)
-
-
-
+# generate custom target images
 def mario():
     """ 16 tall x 13 wide """
     WHITE = (255, 255, 255)
@@ -219,20 +199,30 @@ def mario():
         [BROWN]*4 + [WHITE]*4 + [BROWN]*4 + [WHITE]*1,
     ]
 
-if __name__ == "__main__":
-    IMAGE_WIDTH = 10
-    IMAGE_HEIGHT = 10
-    MAX_STEPS = 300000
-    # target = [
-    #     [ (0, 255, 125) for i in range(IMAGE_WIDTH) ] for j in range(IMAGE_HEIGHT)
-    # ]
-    # output_dir = "test"
 
-    target = mario()
-    output_dir = "mario"
+def main():
+    target = generate_solid_image(
+        color=(0, 255, 125),
+        height=10,
+        width=10
+    )
+    output_dir = "test"
 
     # image_name = 'puppy.png'
-    # target = get_image_pixels(image_name)
+    # target = load_image_pixels(image_name)
     # output_dir = image_name.split(".")[0]
 
-    main(target, output_dir, MAX_STEPS, starting_image=None)
+    # target = mario()
+    # output_dir = "mario"
+
+    run_genetic_algorithm(
+        target,
+        output_dir,
+        video_resolution=10,
+        max_steps=300000,
+        starting_image=None
+    )
+
+if __name__ == "__main__":
+    main()
+    

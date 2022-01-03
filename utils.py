@@ -42,17 +42,29 @@ def resize(image, scale):
     return image.resize(size, resample=Image.BOX)
 
 
-def add_white_boarder(image):
+def add_white_boarder(image, thickness=1):
     WHITE = (255, 255, 255)
-    output = [
-        [WHITE]*(len(image[0])+2)
-    ]
+    white_row = [WHITE]*(len(image[0]) + thickness*2)
+    output = []
 
+    output.extend([white_row]*thickness)
     for row in image:
-        output.append([WHITE] + row + [WHITE])
-
-    output.append([WHITE]*(len(image[0])+2))
+        output.append([WHITE]*thickness + row + [WHITE]*thickness)
+    output.extend([white_row]*thickness)
+    
     return output
 
 # to convert to mp4
 # ffmpeg -i %d.png -vcodec mpeg4 output.mp4
+
+ 
+def load_image_pixels(path):
+    im = Image.open(path)
+    pixels = list(im.getdata())
+    width, height = im.size
+    return [pixels[i * width:(i + 1) * width] for i in range(height)]
+
+def generate_solid_image(color, height, width):
+    return [
+        [ color for i in range(width) ] for j in range(height)
+    ]
