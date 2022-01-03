@@ -1,5 +1,6 @@
 import os
 import random
+import subprocess
 from PIL import Image
 from math import ceil
 from utils import *
@@ -104,7 +105,7 @@ def select(population, target, pop_size=None):
     i = pop_size or ceil(len(population) / 2)
     return sorted(population, key=lambda item: image_error(item, target))[:i]
 
-def fit(starting_image, target, on_save, max_steps=None):
+def run_genetic_algorithm(starting_image, target, on_save, max_steps=None):
     counter = 0
     time = 0
 
@@ -139,7 +140,8 @@ def fit(starting_image, target, on_save, max_steps=None):
     on_save(most_fit, counter, last=True)
 
 
-def run_genetic_algorithm(target, output_dir, video_resolution=10, scale=None, max_steps=None, starting_image=None):
+def generate_timelapse(target, output_dir, video_resolution=10, scale=None, max_steps=None, starting_image=None):
+    """ returns path to timelapse mp4 """
     height = len(target)
     width = len(target[0])
 
@@ -165,9 +167,13 @@ def run_genetic_algorithm(target, output_dir, video_resolution=10, scale=None, m
     save_image(target, os.path.join(output_dir, "target.png"))
     save_image(starting_image, os.path.join(output_dir, "start.png"))
 
-    fit(starting_image, target, on_save, max_steps)
+    run_genetic_algorithm(starting_image, target, on_save, max_steps)
 
-    # ffmpeg -i %d.png -vcodec mpeg4 output.mp4
+    video_path = os.path.join(output_dir, 'output.mp4')
+    image_path_format = os.path.join(output_dir, '%d.png')
+    subprocess.run(['ffmpeg', '-i', image_path_format, '-vcodec', 'mpeg4', video_path])
+
+    return video_path
 
 # generate custom target images
 def mario():
@@ -203,8 +209,8 @@ def mario():
 def main():
     target = generate_solid_image(
         color=(0, 255, 125),
-        height=10,
-        width=10
+        height=1,
+        width=1
     )
     output_dir = "test"
 
@@ -215,7 +221,7 @@ def main():
     # target = mario()
     # output_dir = "mario"
 
-    run_genetic_algorithm(
+    video_path = generate_timelapse(
         target,
         output_dir,
         video_resolution=10,
