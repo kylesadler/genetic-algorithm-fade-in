@@ -116,14 +116,6 @@ def mutate(parent, num_mutations):
     return parent
 
 
-""" TODO
-
-    init_population
-    reproduce
-
-"""
-
-
 def fit(starting_image, target, on_save, max_steps):
     counter = 0
     time = 0
@@ -184,6 +176,8 @@ def main(target, output_dir, max_steps, starting_image=None):
     save_output(starting_image, os.path.join(output_dir, "start.png"))
 
     fit(starting_image, target, on_save, max_steps)
+
+    images.extend([images[-1]]*20)
 
     images[0].save(os.path.join(output_dir, "final.gif"),
                save_all=True, append_images=images[1:], optimize=False, duration=2000/len(images), loop=0)

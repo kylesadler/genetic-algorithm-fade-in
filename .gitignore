@@ -1,8 +1,8 @@
+!mario
 *.jpg
 *.jpeg
+*.png
 # *.gif
-
-!mario
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
