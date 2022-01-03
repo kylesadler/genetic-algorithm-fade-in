@@ -39,3 +39,25 @@ def constrain(x, a, b):
 def makedir(path):
     if not os.path.exists(path):
         os.mkdir(path)
+
+
+def resize(image, scale):
+    width, height = image.size
+    size = (width*scale, height*scale)
+    return image.resize(size, resample=Image.BOX)
+
+
+def add_white_boarder(image):
+    WHITE = (255, 255, 255)
+    output = [
+        [WHITE]*(len(image[0])+2)
+    ]
+
+    for row in image:
+        output.append([WHITE] + row + [WHITE])
+
+    output.append([WHITE]*(len(image[0])+2))
+    return output
+
+# to convert to mp4
+# ffmpeg -i %d.png -vcodec mpeg4 output.mp4

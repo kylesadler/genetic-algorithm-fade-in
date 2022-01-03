@@ -2,7 +2,7 @@ import os
 import random
 from PIL import Image
 from math import ceil
-from utils import save_output, get_random_rgb, constrain, makedir, get_random_rgb_image, to_image
+from utils import save_output, get_random_rgb, constrain, makedir, get_random_rgb_image, to_image, resize, add_white_boarder
 
 """ population should be a dictionary of {image: error} """
 
