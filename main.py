@@ -202,9 +202,7 @@ def load_scaled_image(image_path, max_dimension):
     im = Image.open(image_path)
     width, height = im.size
     scale = max_dimension / max(width, height)
-    return im.resize((round(width*scale), round(height*scale)), resample=Image.LANCZOS)
-
-
+    return im.resize((round(width*scale), round(height*scale)), resample=Image.NEAREST)
 
 def main(target_image_path, starting_image_path=None):
     # max size is 40 x 40
@@ -226,7 +224,7 @@ def main(target_image_path, starting_image_path=None):
     
     if starting_image_path is not None:
         starting_image = Image.open(starting_image_path)
-        starting_image = starting_image.resize((len(target[0]), len(target)))
+        starting_image = starting_image.resize((len(target[0]), len(target)), resample=Image.NEAREST)
         starting_image = to_pixels(starting_image)
         start_name = f"{os.path.basename(starting_image_path).split('.')[0]}_to_"
 
