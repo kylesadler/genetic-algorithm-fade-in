@@ -1,9 +1,11 @@
-!mario
 *.jpg
 *.jpeg
 *.png
 *.gif
 .DS_Store
+
+!mario
+!mario/*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

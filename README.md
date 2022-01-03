@@ -8,4 +8,5 @@ TODO
 - make web interface
 - host on webserver
 - post on Twitter
-- become famous
+- ???
+- Profit

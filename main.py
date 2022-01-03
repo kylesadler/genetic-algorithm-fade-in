@@ -180,6 +180,7 @@ def main(target, output_dir, max_steps, starting_image=None):
 
     fit(starting_image, target, on_save, max_steps)
 
+    # ffmpeg -i %d.png -vcodec mpeg4 output.mp4
 
 def save_image(data, scale, filename):
     data = add_white_boarder(data)
@@ -221,7 +222,7 @@ def mario():
 if __name__ == "__main__":
     IMAGE_WIDTH = 10
     IMAGE_HEIGHT = 10
-    MAX_STEPS = 20000
+    MAX_STEPS = 30000
     # target = [
     #     [ (0, 255, 125) for i in range(IMAGE_WIDTH) ] for j in range(IMAGE_HEIGHT)
     # ]
