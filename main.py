@@ -2,7 +2,7 @@ import os
 import random
 from PIL import Image
 from math import ceil
-from utils import save_output, get_random_rgb, constrain, makedir, get_random_rgb_image, to_image, resize, add_white_boarder
+from utils import get_random_rgb, constrain, makedir, get_random_rgb_image, to_image, resize, add_white_boarder
 
 """ population should be a dictionary of {image: error} """
 
@@ -126,7 +126,7 @@ def fit(starting_image, target, on_save, max_steps):
     error = image_error(most_fit, target)
 
     print("error", error)
-    on_save(most_fit, time)
+    on_save(most_fit, counter)
 
     while time < max_steps and error > 0:
         time += 1
@@ -144,11 +144,11 @@ def fit(starting_image, target, on_save, max_steps):
             counter += 1
 
             print("error", error)
-            on_save(most_fit, time, counter)
+            on_save(most_fit, counter)
         
 
     print("error", error)
-    on_save(most_fit, time)
+    on_save(most_fit, counter, last=True)
     
 def get_image_pixels(path):
     im = Image.open(path)
@@ -159,28 +159,34 @@ def get_image_pixels(path):
 
 def main(target, output_dir, max_steps, starting_image=None):
 
-    images = []
+    
+    SCALE = 20
+    resolution = 50
     makedir(output_dir)
 
-    def on_save(image, time, counter=None):
+    def on_save(image, counter, last=None):
         """ what to do with images when they are saved """
-        if counter is None or counter % 50 == 0:
-            save_output(image, os.path.join(output_dir, f"{time}.png"))
-            images.append(to_image(image))
+        if counter % resolution == 0 or last:
+            if last:
+                counter += 1
+            save_image(image, SCALE, os.path.join(output_dir, f"{ceil(counter/resolution)}.png"))
 
 
     starting_image = starting_image or get_random_rgb_image(len(target), len(target[0]))
 
     print("width, height", len(target[0]), len(target))
-    save_output(target, os.path.join(output_dir, "target.png"))
-    save_output(starting_image, os.path.join(output_dir, "start.png"))
+    save_image(target, SCALE, os.path.join(output_dir, "target.png"))
+    save_image(starting_image, SCALE, os.path.join(output_dir, "start.png"))
 
     fit(starting_image, target, on_save, max_steps)
 
-    images.extend([images[-1]]*20)
 
-    images[0].save(os.path.join(output_dir, "final.gif"),
-               save_all=True, append_images=images[1:], optimize=False, duration=2000/len(images), loop=0)
+def save_image(data, scale, filename):
+    data = add_white_boarder(data)
+    data = to_image(data)
+    data = resize(data, scale)
+    data.save(filename)
+
 
 
 def mario():

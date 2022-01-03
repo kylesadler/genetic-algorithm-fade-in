@@ -2,11 +2,6 @@ import os
 import random
 from PIL import Image
 
-def save_output(data, filename):
-    image = to_image(data)
-
-    image.save(filename)
-
 def to_image(data):
     height = len(data)
     width = len(data[0])
