@@ -10,6 +10,8 @@ POPULATION_SIZE = 10
 NUM_OFFSPRING = 10
 NUM_MUTATIONS = 10
 CHANGES_PER_MUTATION = 1
+MAX_IMAGE_DIM = 17
+MIN_VIDEO_DIM = 400 # scaled up version of processed picture
 
 def image_error(image, target):
     """ image and target are 2D lists of colors """
@@ -97,7 +99,7 @@ def select(population, target, pop_size=None):
     i = pop_size or ceil(len(population) / 2)
     return sorted(population, key=lambda item: image_error(item, target))[:i]
 
-def run_genetic_algorithm(starting_image, target, on_save, max_steps=None):
+def run_genetic_algorithm(starting_image, target, on_save, max_steps=None, max_error=0):
     counter = 0
     time = 0
 
@@ -108,7 +110,7 @@ def run_genetic_algorithm(starting_image, target, on_save, max_steps=None):
     print("error", error)
     on_save(most_fit, counter)
 
-    while (max_steps is None or time < max_steps) and error > 0:
+    while (max_steps is None or time < max_steps) and error > max_error:
         time += 1
 
         population = reproduce(population, NUM_OFFSPRING, NUM_MUTATIONS, CHANGES_PER_MUTATION)
@@ -131,12 +133,12 @@ def run_genetic_algorithm(starting_image, target, on_save, max_steps=None):
     on_save(most_fit, counter, last=True)
 
 
-def generate_timelapse(target, output_dir, video_resolution=10, scale=None, max_steps=None, starting_image=None):
+def generate_timelapse(target, output_dir, video_resolution=10, scale=None, max_steps=None, max_error=0, starting_image=None):
     """ returns path to timelapse mp4 """
     height = len(target)
     width = len(target[0])
 
-    scale = scale or ceil(300 / min(height, width))
+    scale = scale or ceil(MIN_VIDEO_DIM / min(height, width))
     starting_image = starting_image or get_random_rgb_image(height, width)
 
     makedir(output_dir)
@@ -158,7 +160,7 @@ def generate_timelapse(target, output_dir, video_resolution=10, scale=None, max_
     save_image(target, os.path.join(output_dir, "target.png"))
     save_image(starting_image, os.path.join(output_dir, "start.png"))
 
-    run_genetic_algorithm(starting_image, target, on_save, max_steps)
+    run_genetic_algorithm(starting_image, target, on_save, max_steps, max_error)
 
     video_path = os.path.join(output_dir, 'output.mp4')
     image_path_format = os.path.join(output_dir, '%d.png')
@@ -196,32 +198,53 @@ def mario():
         [BROWN]*4 + [WHITE]*4 + [BROWN]*4 + [WHITE]*1,
     ]
 
+def load_scaled_image(image_path, max_dimension):
+    im = Image.open(image_path)
+    width, height = im.size
+    scale = max_dimension / max(width, height)
+    return im.resize((round(width*scale), round(height*scale)), resample=Image.LANCZOS)
 
-def main():
+
+
+def main(target_image_path, starting_image_path=None):
+    # max size is 40 x 40
     # target = generate_solid_image(
     #     color=(0, 255, 125),
-    #     height=20,
-    #     width=20
+    #     height=MAX_IMAGE_DIM,
+    #     width=MAX_IMAGE_DIM
     # )
     # output_dir = f"test_{get_current_time_ms()}"
 
-    # image_name = 'puppy.png'
-    # target = load_image_pixels(image_name)
-    # output_dir = image_name.split(".")[0]
+    # target = mario()
+    # output_dir = "mario"
 
-    target = mario()
-    output_dir = "mario"
+    target = to_pixels(load_scaled_image(target_image_path, MAX_IMAGE_DIM))
+    target_name = os.path.basename(target_image_path).split('.')[0]
+
+    starting_image = None
+    start_name = ""
+    
+    if starting_image_path is not None:
+        starting_image = Image.open(starting_image_path)
+        starting_image = starting_image.resize((len(target[0]), len(target)))
+        starting_image = to_pixels(starting_image)
+        start_name = f"{os.path.basename(starting_image_path).split('.')[0]}_to_"
+
+    output_dir = f"{start_name}{target_name}_{get_current_time_ms()}"
 
     video_path = generate_timelapse(
         target,
         output_dir,
         video_resolution=10,
         max_steps=300000,
-        starting_image=None
+        max_error=100,
+        starting_image=starting_image,
     )
 
     print(f"Video created: {video_path}")
 
 if __name__ == "__main__":
-    main()
+    target = os.path.join("test_images", "uark.jpg")
+    start = os.path.join("test_images", "me.jpg")
+    main(target, start)
     

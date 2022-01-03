@@ -61,8 +61,11 @@ def add_white_boarder(image, thickness=1):
  
 def load_image_pixels(path):
     im = Image.open(path)
-    pixels = list(im.getdata())
-    width, height = im.size
+    return to_pixels(im)
+ 
+def to_pixels(image):
+    pixels = list(image.getdata())
+    width, height = image.size
     return [pixels[i * width:(i + 1) * width] for i in range(height)]
 
 def generate_solid_image(color, height, width):
