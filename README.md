@@ -1,6 +1,6 @@
-# genetic-algorithm-fade-in
+# image-genetic-algorithm
 
-Given a target image, this program generates a gif of the image fading in using a Genetic Algorithm.
+Generates a gif of a Genetic Algorithm converging from random noise to a picture, producing a cool "fade-in" effect.
 
 TODO
 
